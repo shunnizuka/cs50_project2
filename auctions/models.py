@@ -7,7 +7,7 @@ class User(AbstractUser):
 
 class Bids(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bidder")
-    price = models.DecimalField(max_digits=5, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.user}: {self.price}"
@@ -20,7 +20,7 @@ class Comments(models.Model):
         return f"{self.user}: {self.comment}"
 
 class Category(models.Model):
-    category = models.CharField(max_length=64)
+    category = models.CharField(max_length=255)
 
     def __str__(self):
         return f"{self.category}"
@@ -32,7 +32,7 @@ class Listing(models.Model):
     imageUrl = models.CharField(max_length=255, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="Lister")
     bid = models.ForeignKey(Bids, on_delete=models.CASCADE, related_name="highestBid") 
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, related_name="listingCategory")
+    category = models.OneToOneField(Category, on_delete=models.CASCADE, blank=True, related_name="listingCategory")
     comments = models.ManyToManyField(Comments, blank=True, related_name="ListingComments")
 
     def __str__(self):
