@@ -5,13 +5,6 @@ from django.db import models
 class User(AbstractUser):
     pass
 
-class Bids(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bidder")
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.user}: {self.price}"
-
 class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="commenter")
     comment = models.CharField(max_length=255)
@@ -31,7 +24,7 @@ class Listing(models.Model):
     active = models.BooleanField()
     imageUrl = models.CharField(max_length=255, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="Lister")
-    bid = models.ForeignKey(Bids, on_delete=models.CASCADE, related_name="highestBid") 
+    bid = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.OneToOneField(Category, on_delete=models.CASCADE, blank=True, related_name="listingCategory")
     comments = models.ManyToManyField(Comments, blank=True, related_name="ListingComments")
 
@@ -44,3 +37,11 @@ class WatchList(models.Model):
 
     def __str__(self):
         return f"{self.user}: {self.listing}"
+
+class Bids(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bidder")
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="listing_bid")
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.user}: {self.price} for {self.listing}"
