@@ -29,7 +29,7 @@ class Listing(models.Model):
     comments = models.ManyToManyField(Comments, blank=True, related_name="ListingComments")
 
     def __str__(self):
-        return f"{self.title}: {self.description}, Lister: {self.user}"
+        return f"{self.title}: {self.description}, Lister: {self.user} Price: {self.bid} image: {self.imageUrl}"
 
 class WatchList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="WatchlistUser")

@@ -3,12 +3,27 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.db.models import Max
 
 from .models import User, Category, Bids, Listing
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+
+    listings = Listing.objects.filter(active=True)
+    currentBids = {}
+    print(listings)
+    for listing in listings:
+        maxBid = Bids.objects.filter(listing=listing.id).aggregate(Max('price'))
+        if (maxBid['price__max'] == None):
+            listing.currentBid = listing.bid
+        else:
+            listing.currentBid = maxBid['price__max']
+
+    return render(request, "auctions/index.html", {
+        "listings": listings,
+        "currentBids": currentBids
+    })
 
 
 def login_view(request):
@@ -68,10 +83,8 @@ def createListing(request):
 
     if request.method == "POST":
         
-        bid = float(request.POST["bid"])
-        startingBid = Bids(user=request.user, price=bid)
-        startingBid.save();
-        
+        startingBid = float(request.POST["bid"])
+
         categoryFromdb = None;
         category = request.POST["category"]
         print(category)
@@ -89,9 +102,9 @@ def createListing(request):
         image = request.POST["image"]
 
         if categoryFromdb != None:
-            listing = Listing(user=request.user, category=categoryFromdb, title=title, description=desc, active=1, imageUrl=image, bid=startingBid)
+            listing = Listing(user=request.user, category=categoryFromdb, title=title, description=desc, active=True, imageUrl=image, bid=startingBid)
         else:
-            listing = Listing(user=request.user, title=title, description=desc, active=1, imageUrl=image, bid=startingBid)
+            listing = Listing(user=request.user, title=title, description=desc, active=True, imageUrl=image, bid=startingBid)
         listing.save()
 
     return render(request, "auctions/createListing.html", {
