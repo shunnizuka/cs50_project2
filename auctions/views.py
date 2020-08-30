@@ -5,8 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Max
 
-from .models import User, Category, Bids, Listing
-
+from .models import User, Category, Bids, Listing, WatchList
 
 def index(request):
 
@@ -16,13 +15,12 @@ def index(request):
     for listing in listings:
         maxBid = Bids.objects.filter(listing=listing.id).aggregate(Max('price'))
         if (maxBid['price__max'] == None):
-            listing.currentBid = listing.bid
+            listing.currentBid = round(listing.bid, 2)
         else:
-            listing.currentBid = maxBid['price__max']
+            listing.currentBid = round(maxBid['price__max'], 2)
 
     return render(request, "auctions/index.html", {
         "listings": listings,
-        "currentBids": currentBids
     })
 
 
@@ -109,4 +107,37 @@ def createListing(request):
 
     return render(request, "auctions/createListing.html", {
         "categories": Category.objects.all()
+    })
+
+def watchlist(request):
+
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("index"))
+    
+    watchlistItems = WatchList.objects.filter(user=request.user.id)
+    print(watchlistItems)
+    for watchlist in watchlistItems:
+        maxBid = Bids.objects.filter(listing=watchlist.listing).aggregate(Max('price'))
+        if (maxBid['price__max'] == None):
+            watchlist.listing.currentBid = round(watchlist.listing.bid, 2)
+        else:
+            watchlist.listing.currentBid = round(maxBid['price__max'], 2)
+
+    print(watchlistItems)
+    return render(request, "auctions/watchlist.html", {
+        "watchlistItems": watchlistItems
+    })
+
+def categories(request):
+
+    categoryList = Category.objects.all();
+    return render(request, "auctions/categories.html",{
+        "categories": categoryList
+    })
+
+def categoryListing(request, categoryId):
+
+    listings = Listing.objects.filter(category=categoryId)
+    return render(request, "auctions/index.html", {
+        "listings": listings
     })
