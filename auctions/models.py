@@ -25,11 +25,11 @@ class Listing(models.Model):
     imageUrl = models.CharField(max_length=255, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="Lister")
     bid = models.DecimalField(max_digits=10, decimal_places=2)
-    category = models.OneToOneField(Category, on_delete=models.CASCADE, blank=True, related_name="listingCategory")
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True, related_name="listingCategory")
     comments = models.ManyToManyField(Comments, blank=True, related_name="ListingComments")
 
     def __str__(self):
-        return f"{self.title}: {self.description}, Lister: {self.user} Price: {self.bid} image: {self.imageUrl}"
+        return f"{self.id} {self.title}: {self.description}, Lister: {self.user} Price: {self.bid} image: {self.imageUrl}"
 
 class WatchList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="WatchlistUser")

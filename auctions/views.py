@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.db.models import Max
 
@@ -82,14 +82,11 @@ def createListing(request):
     if request.method == "POST":
         
         startingBid = float(request.POST["bid"])
-
         categoryFromdb = None;
         category = request.POST["category"]
-        print(category)
         if category != 'None':
             categoryFromdb = Category.objects.get(pk=category)
         categoryInput = request.POST["categoryInput"]
-        print(categoryInput)
         if categoryInput != None:
             newCategory = Category(category=categoryInput)
             newCategory.save()
@@ -141,3 +138,50 @@ def categoryListing(request, categoryId):
     return render(request, "auctions/index.html", {
         "listings": listings
     })
+
+def listingPage(request, listingId):
+    if request.method == "POST":
+        # To place new bid
+        if 'placeBid' in request.POST:
+            bidPrice = float(request.POST["bid"])
+            listing = Listing.objects.get(pk=listingId)
+            newBid = Bids(user=request.user, listing=listing, price=bidPrice)
+            newBid.save()
+        return redirect('listingPage', listingId)
+        
+    else:
+        listing = Listing.objects.get(pk=listingId)
+        maxBid = Bids.objects.filter(listing=listing.id).aggregate(Max('price'))
+        if (maxBid['price__max'] == None):
+            listing.currentBid = round(listing.bid, 2)
+        else:
+            listing.currentBid = round(maxBid['price__max'], 2)
+    
+        isLister = False
+        isWinner = False
+        isInWatchlist = False
+        userBid = 0
+
+        if request.user.is_authenticated:
+            isLister = True if listing.user == request.user else False
+            watchlist = WatchList.objects.filter(user=request.user, listing=listingId)
+            isInWatchlist = False if watchlist != None else True
+
+            userBid = Bids.objects.filter(listing=listingId, user=request.user).aggregate(Max('price'))
+            if (userBid['price__max'] == None):
+                userBid = round(0, 2)
+            else:
+                userBid = round(userBid['price__max'], 2)
+
+            if listing.active == False:
+                bid = Bids.objects.filter(listing=listingId, price=listing.currentBid, user=request.user)
+                isWinner = False if bid != None else True
+
+        return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "isLister": isLister,
+            "isWinner": isWinner,
+            "isInWatchlist": isInWatchlist,
+            "userBid": userBid
+        })
+        

@@ -1,0 +1,46 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Listing: {{ listing.title }}</h2>
+
+    <div class="card mb-3">
+        <div class="row g-0">
+          <div class="col-md-3">
+            {% if listing.imageUrl != '' %}
+                <img src="{{ listing.imageUrl }}" alt="item" style="max-width: 400px;height:auto;">
+            {% else %}
+                <img src="https://cdn.uwplatt.edu/image-not-available/1.jpg" alt="no image available" style="max-width: 400px;height:auto;">
+            {% endif %}
+          </div>
+          <div class="col-md-9">
+            <div class="card-body">
+              <h4 class="card-title">{{ listing.title }}</h4>
+              <p class="card-text">{{ listing.description }}</p>
+              <h5 class="card-text">Current Price: ${{ listing.currentBid }}</h5>
+              {% if user.is_authenticated %}
+                {% if isLister != True %}
+                    <p class="card-text">Your bid: ${{ userBid }}</p>
+                    <form action="{% url 'listingPage' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input autofocus class="form-control" type="number" name="bid" placeholder="Input new bid" min="{{ listing.currentBid }}" required>
+                        </div>
+                        {% if listing.active == True %}
+                            <input class="btn btn-primary" type="submit" name="placeBid" value="Place Bid">
+                        {% else %}
+                            <input disabled class="btn btn-secondary" type="submit" value="Place Bid">
+                        {% endif %}
+                    </form>
+                {% endif %}
+              {% endif %}
+              <h5 class="card-text" style="margin-top:15px;">Other details:</h5>
+              <ul>
+                <li><p class="card-text">Listed by: {{ listing.user }}</p></li>
+                <li><p class="card-text">Category: {{ listing.category }}</p></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+    </div>
+
+{% endblock %}
