@@ -2,6 +2,16 @@
 
 {% block body %}
     <h2>Listing: {{ listing.title }}</h2>
+    {% if listing.active == False %}
+        {% if isWinner == True %}
+            <div class="alert alert-success" role="alert">
+                You won this listing for ${{ listing.currentBid }}!
+            </div>
+        {% endif %}
+        <div class="alert alert-secondary" role="alert">
+            This listing is closed
+        </div>
+    {% endif %}
 
     <div class="card mb-3">
         <div class="row g-0">
@@ -39,23 +49,35 @@
                 <li><p class="card-text">Category: {{ listing.category }}</p></li>
               </ul>
               {% if user.is_authenticated %}
-                {% if isLister == True %}
+              {% if isLister == True %}
                     <form action="{% url 'listingPage' listing.id %}" method="post">
                         {% csrf_token %}
-                        <input class="btn btn-primary" type="submit" name="closeListing" value="Close Listing">
+                        {% if listing.active == True %}
+                            <input class="btn btn-primary" type="submit" name="closeListing" value="Close Listing">
+                        {% else %}
+                            <input disabled class="btn btn-secondary" type="submit" name="closeListing" value="Close Listing">
+                        {% endif %}
                     </form>
                 {% elif isInWatchlist == False %}
                     <form action="{% url 'listingPage' listing.id %}" method="post">
                         {% csrf_token %}
-                        <input class="btn btn-primary" type="submit" name="addWatchlist" value="Add to Watchlist">
+                        {% if listing.active == True %}
+                            <input class="btn btn-primary" type="submit" name="addWatchlist" value="Add to Watchlist">
+                        {% else %}
+                            <input disabled class="btn btn-secondary" type="submit" name="addWatchlist" value="Add to Watchlist">
+                        {% endif %}
                     </form>
                 {% elif isInWatchlist == True %}
                     <form action="{% url 'listingPage' listing.id %}" method="post">
-                    {% csrf_token %}
-                        <input class="btn btn-primary" type="submit" name="removeWatchlist" value="Remove from Watchlist">
-                    {% endif %}
+                        {% csrf_token %}
+                        {% if listing.active == True %}
+                            <input class="btn btn-primary" type="submit" name="removeWatchlist" value="Remove from Watchlist">
+                        {% else %}
+                            <input disabled class="btn btn-secondary" type="submit" name="removeWatchlist" value="Remove from Watchlist">
+                        {% endif %}
                     </form>
                 {% endif %}
+              {% endif %}
             </div>
           </div>
         </div>
@@ -75,10 +97,17 @@
                 <h5 class="card-header">Add Comments</h5>
                 <form style="padding:15px;" action="{% url 'listingPage' listing.id %}" method="post">
                     {% csrf_token %}
-                    <div class="form-group">
-                        <input autofocus class="form-control" type="text" placeholder="Type your comment here" name="comment">
-                    </div>
-                    <input class="btn btn-primary" style="float:right;" type="submit" name="newComment"  value="Add Comment">
+                    {% if listing.active == True %}
+                        <div class="form-group">
+                            <input autofocus class="form-control" type="text" placeholder="Type your comment here" name="comment">
+                        </div>
+                        <input class="btn btn-primary" style="float:right;" type="submit" name="newComment"  value="Add Comment">
+                    {% else %}
+                        <div class="form-group">
+                            <input autofocus disabled class="form-control" type="text" placeholder="Type your comment here" name="comment">
+                        </div>
+                        <input disabled class="btn btn-secondary" style="float:right;" type="submit" name="newComment"  value="Add Comment">
+                    {% endif %}
                 </form>
             {% endif %}
         </ul>

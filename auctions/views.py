@@ -195,7 +195,7 @@ def listingPage(request, listingId):
 
             if listing.active == False:
                 bid = Bids.objects.filter(listing=listingId, price=listing.currentBid, user=request.user)
-                isWinner = False if bid != None else True
+                isWinner = False if not bid else True
 
         return render(request, "auctions/listing.html", {
             "listing": listing,
