@@ -38,9 +38,49 @@
                 <li><p class="card-text">Listed by: {{ listing.user }}</p></li>
                 <li><p class="card-text">Category: {{ listing.category }}</p></li>
               </ul>
+              {% if user.is_authenticated %}
+                {% if isLister == True %}
+                    <form action="{% url 'listingPage' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <input class="btn btn-primary" type="submit" name="closeListing" value="Close Listing">
+                    </form>
+                {% elif isInWatchlist == False %}
+                    <form action="{% url 'listingPage' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <input class="btn btn-primary" type="submit" name="addWatchlist" value="Add to Watchlist">
+                    </form>
+                {% elif isInWatchlist == True %}
+                    <form action="{% url 'listingPage' listing.id %}" method="post">
+                    {% csrf_token %}
+                        <input class="btn btn-primary" type="submit" name="removeWatchlist" value="Remove from Watchlist">
+                    {% endif %}
+                    </form>
+                {% endif %}
             </div>
           </div>
         </div>
     </div>
-
+    <div class="card">
+        <h5 class="card-header">Comments</h5>
+        <ul class="list-group list-group-flush">
+            {% for comment in comments %}
+                <li class="list-group-item">
+                    <blockquote class="blockquote mb-0">
+                        <p>{{ comment.comment }}</p>
+                        <footer class="blockquote-footer">{{ comment.user }}</footer>
+                    </blockquote>
+                </li>
+            {% endfor %}
+            {% if user.is_authenticated %}
+                <h5 class="card-header">Add Comments</h5>
+                <form style="padding:15px;" action="{% url 'listingPage' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input autofocus class="form-control" type="text" placeholder="Type your comment here" name="comment">
+                    </div>
+                    <input class="btn btn-primary" style="float:right;" type="submit" name="newComment"  value="Add Comment">
+                </form>
+            {% endif %}
+        </ul>
+    <div>
 {% endblock %}

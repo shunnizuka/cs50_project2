@@ -5,13 +5,12 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.db.models import Max
 
-from .models import User, Category, Bids, Listing, WatchList
+from .models import User, Category, Bids, Listing, WatchList, Comments
 
 def index(request):
 
     listings = Listing.objects.filter(active=True)
     currentBids = {}
-    print(listings)
     for listing in listings:
         maxBid = Bids.objects.filter(listing=listing.id).aggregate(Max('price'))
         if (maxBid['price__max'] == None):
@@ -112,7 +111,6 @@ def watchlist(request):
         return HttpResponseRedirect(reverse("index"))
     
     watchlistItems = WatchList.objects.filter(user=request.user.id)
-    print(watchlistItems)
     for watchlist in watchlistItems:
         maxBid = Bids.objects.filter(listing=watchlist.listing).aggregate(Max('price'))
         if (maxBid['price__max'] == None):
@@ -120,7 +118,6 @@ def watchlist(request):
         else:
             watchlist.listing.currentBid = round(maxBid['price__max'], 2)
 
-    print(watchlistItems)
     return render(request, "auctions/watchlist.html", {
         "watchlistItems": watchlistItems
     })
@@ -141,12 +138,33 @@ def categoryListing(request, categoryId):
 
 def listingPage(request, listingId):
     if request.method == "POST":
+        listing = Listing.objects.get(pk=listingId)
         # To place new bid
         if 'placeBid' in request.POST:
             bidPrice = float(request.POST["bid"])
-            listing = Listing.objects.get(pk=listingId)
             newBid = Bids(user=request.user, listing=listing, price=bidPrice)
             newBid.save()
+        
+        # Add to watchlist
+        if 'addWatchlist' in request.POST:
+            watchlist = WatchList(user=request.user, listing=listing)
+            watchlist.save()
+
+        # Remove from watchlist
+        if 'removeWatchlist' in request.POST:
+            WatchList.objects.get(user=request.user, listing=listing).delete()
+
+        # Close listing
+        if 'closeListing' in request.POST:
+            Listing.objects.filter(pk=listingId).update(active=False)
+
+        # Add comment
+        if 'newComment' in request.POST:
+            comment = request.POST["comment"]
+            newComment = Comments(user=request.user, comment=comment)
+            newComment.save()
+            listing.comments.add(newComment)
+        
         return redirect('listingPage', listingId)
         
     else:
@@ -156,6 +174,8 @@ def listingPage(request, listingId):
             listing.currentBid = round(listing.bid, 2)
         else:
             listing.currentBid = round(maxBid['price__max'], 2)
+        
+        comments = listing.comments.all()
     
         isLister = False
         isWinner = False
@@ -165,7 +185,7 @@ def listingPage(request, listingId):
         if request.user.is_authenticated:
             isLister = True if listing.user == request.user else False
             watchlist = WatchList.objects.filter(user=request.user, listing=listingId)
-            isInWatchlist = False if watchlist != None else True
+            isInWatchlist = False if not watchlist else True
 
             userBid = Bids.objects.filter(listing=listingId, user=request.user).aggregate(Max('price'))
             if (userBid['price__max'] == None):
@@ -182,6 +202,7 @@ def listingPage(request, listingId):
             "isLister": isLister,
             "isWinner": isWinner,
             "isInWatchlist": isInWatchlist,
-            "userBid": userBid
+            "userBid": userBid,
+            "comments": comments
         })
         
