@@ -20,7 +20,6 @@
         <div class="form-select" style="display:flex;">
             <select class="form-control" style="width: 40%;" name="category" id="">
                 <option value="None">Category None selected</option>
-                <option value="others">Others</option>
                 {% for category in categories %}
                     <option value="{{ category.id }}">{{ category }}</option>
                 {% endfor %}
@@ -28,6 +27,6 @@
             <label style="padding: 0px 10px; padding-top: 5px;"> OR </label>
             <input class="form-control" style="width: 40%;" type="text" name="categoryInput" placeholder="Add new category (optional)">
         </div>
-        <input class="btn btn-primary" type="submit" value="Create">
+        <input class="btn btn-primary" style="margin-top:20px;" type="submit" value="Create">
     </form>
 {% endblock %}

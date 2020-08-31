@@ -3,27 +3,31 @@
 {% block body %}
     <h2>Watchlist</h2>
 
-    <div style="display: inline-flex;">
-    {% for watchlist in watchlistItems %}
-        <div class='card' style="width: 400px;">
-            <div class="card-header">
-                <h5>
-                    <a href="{% url 'index' %}">{{ watchlist.listing.title }}</a>
-                </h5>
+    <div class="container-fluid">
+        <div class="row">
+        {% for watchlist in watchlistItems %}
+            <div class="col-3">
+                <div class='card' style="width: 400px;">
+                    <div class="card-header">
+                        <h5>
+                            <a href="{% url 'listingPage' watchlist.listing.id %}">{{ watchlist.listing.title }}</a>
+                        </h5>
+                    </div>
+                    {% if watchlist.listing.imageUrl != '' %}
+                        <img class="card-img-top" src="{{ watchlist.listing.imageUrl }}" alt="item" width=300 height="400">
+                    {% else %}
+                        <img class="card-img-top" src="https://cdn.uwplatt.edu/image-not-available/1.jpg" alt="no image available" width=300 height="400">
+                    {% endif %}
+                    <div class=card-body>
+                        <p class="card-text">{{ watchlist.listing.description }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Price: ${{ watchlist.listing.currentBid }}</li>
+                        <li class="list-group-item">Listed by: {{ watchlist.listing.user }}</li>
+                    </ul>
+                </div>
             </div>
-            {% if watchlist.listing.imageUrl != '' %}
-                <img class="card-img-top" src="{{ watchlist.listing.imageUrl }}" alt="item" width=300 height="400">
-            {% else %}
-                <img class="card-img-top" src="https://cdn.uwplatt.edu/image-not-available/1.jpg" alt="no image available" width=300 height="400">
-            {% endif %}
-            <div class=card-body>
-                <p class="card-text">{{ watchlist.listing.description }}</p>
-            </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item">Price: ${{ watchlist.listing.currentBid }}</li>
-                <li class="list-group-item">Listed by: {{ watchlist.listing.user }}</li>
-            </ul>
+        {% endfor %}
         </div>
-    {% endfor %}
     </div>
 {% endblock %}

@@ -86,7 +86,7 @@ def createListing(request):
         if category != 'None':
             categoryFromdb = Category.objects.get(pk=category)
         categoryInput = request.POST["categoryInput"]
-        if categoryInput != None:
+        if categoryInput != '':
             newCategory = Category(category=categoryInput)
             newCategory.save()
             categoryFromdb = newCategory
@@ -131,7 +131,7 @@ def categories(request):
 
 def categoryListing(request, categoryId):
 
-    listings = Listing.objects.filter(category=categoryId)
+    listings = Listing.objects.filter(category=categoryId, active=True)
     return render(request, "auctions/index.html", {
         "listings": listings
     })
